@@ -1,0 +1,44 @@
+<!-- Plugin Configuration File: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN, cannot be changed between the plugin versions. -->
+    <id>com.homebattles.AICommitMessages</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
+    <name>AICommitMessages</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor url="https://www.homebattles.com">Home Battles</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
+    <description><![CDATA[
+        AI Commit Messages generates descriptive git commit messages using Cursor CLI or Copilot CLI.<br>
+        Simply click the "Generate Commit Message" button in the commit dialog to generate a message based on your changes.<br>
+        <em>Configure Cursor and VSCode CLI paths in Settings > Tools > AI Commit Messages</em>
+    ]]></description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extensions defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable id="com.homebattles.aicommitmessages.settings"
+                                 parentId="tools"
+                                 displayName="AI Commit Messages"
+                                 instance="com.homebattles.aicommitmessages.AICommitMessagesConfigurable"/>
+    </extensions>
+
+    <!-- Actions -->
+    <actions>
+        <action id="GenerateCommitMessage"
+                class="com.homebattles.aicommitmessages.GenerateCommitMessageAction"
+                text="Generate Commit Message"
+                description="Generate a commit message using AI">
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
+            <add-to-group group-id="VcsGlobalGroup" anchor="after" relative-to-action="Vcs.Push"/>
+        </action>
+    </actions>
+</idea-plugin>
