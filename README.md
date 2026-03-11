@@ -1,117 +1,61 @@
-# IntelliJ Platform Plugin Template
+# AI Commit Messages
 
-[![Twitter Follow](https://img.shields.io/badge/follow-%40JBPlatform-1DA1F2?logo=twitter)](https://twitter.com/JBPlatform)
-[![Developers Forum](https://img.shields.io/badge/JetBrains%20Platform-Join-blue)][jb:forum]
+JetBrains plugin for generating Git commit messages from the selected changes in the Commit tool window using AI CLI tools.
 
-## Plugin template structure
+Download from [Jetbrains Marketplace](https://plugins.jetbrains.com/plugin/30544-aicommitmessages)
 
-A generated project contains the following content structure:
+## What it does
 
-```
-.
-├── .run/                   Predefined Run/Debug Configurations
-├── build/                  Output build directory
-├── gradle
-│   ├── wrapper/            Gradle Wrapper
-├── src                     Plugin sources
-│   ├── main
-│   │   ├── kotlin/         Kotlin production sources
-│   │   └── resources/      Resources - plugin.xml, icons, messages
-├── .gitignore              Git ignoring rules
-├── build.gradle.kts        Gradle build configuration
-├── gradle.properties       Gradle configuration properties
-├── gradlew                 *nix Gradle Wrapper script
-├── gradlew.bat             Windows Gradle Wrapper script
-├── README.md               README
-└── settings.gradle.kts     Gradle project settings
-```
+- Adds a `Generate Commit Message` action to the commit workflow.
+- Uses the diff from the files currently selected for commit.
+- Supports choosing between Cursor CLI and GitHub Copilot CLI.
+- Lets you configure CLI paths and a default provider in `Settings > Tools > AI Commit Messages`.
 
-In addition to the configuration files, the most crucial part is the `src` directory, which contains our implementation
-and the manifest for our plugin – [plugin.xml][file:plugin.xml].
+## Install
 
-> [!NOTE]
-> To use Java in your plugin, create the `/src/main/java` directory.
+Install from [Jetbrains Marketplace](https://plugins.jetbrains.com/plugin/30544-aicommitmessages):
 
-## Plugin configuration file
+Or in your JetBrains IDE:
 
-The plugin configuration file is a [plugin.xml][file:plugin.xml] file located in the `src/main/resources/META-INF`
-directory.
-It provides general information about the plugin, its dependencies, extensions, and listeners.
+1. Open `Settings` / `Preferences`.
+2. Go to `Plugins`.
+3. Search for `AI Commit Messages`.
+4. Install the plugin and restart the IDE.
 
-You can read more about this file in the [Plugin Configuration File][docs:plugin.xml] section of our documentation.
+## Setup
 
-If you're still not quite sure what this is all about, read our
-introduction: [What is the IntelliJ Platform?][docs:intro]
+Before using the plugin, make sure at least one supported CLI is installed and accessible from your machine:
 
-$H$H Predefined Run/Debug configurations
+- Cursor CLI
+- GitHub Copilot CLI
 
-Within the default project structure, there is a `.run` directory provided containing predefined *Run/Debug
-configurations* that expose corresponding Gradle tasks:
+Then open `Settings > Tools > AI Commit Messages` and configure:
 
-| Configuration name | Description                                                                                                                                                                         |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Run Plugin         | Runs [`:runIde`][gh:intellij-platform-gradle-plugin-runIde] IntelliJ Platform Gradle Plugin task. Use the *Debug* icon for plugin debugging.                                        |
-| Run Tests          | Runs [`:test`][gradle:lifecycle-tasks] Gradle task.                                                                                                                                 |
-| Run Verifications  | Runs [`:verifyPlugin`][gh:intellij-platform-gradle-plugin-verifyPlugin] IntelliJ Platform Gradle Plugin task to check the plugin compatibility against the specified IntelliJ IDEs. |
+- `Cursor CLI path`
+- `VSCode CLI path`
+- `Default CLI`
 
-> [!NOTE]
-> You can find the logs from the running task in the `idea.log` tab.
+If the CLI binary is already available in `PATH`, the defaults may work. Otherwise, set the full executable path manually.
 
-## Publishing the plugin
+## Usage
 
-> [!TIP]
-> Make sure to follow all guidelines listed in [Publishing a Plugin][docs:publishing] to follow all recommended and
-> required steps.
+1. Open the Commit tool window in a supported JetBrains IDE.
+2. Select the files you want to commit.
+3. Click `Generate Commit Message`.
+4. Choose the AI CLI, unless you already set a default.
+5. The generated message is inserted into the commit message field.
 
-Releasing a plugin to [JetBrains Marketplace](https://plugins.jetbrains.com) is a straightforward operation that uses
-the `publishPlugin` Gradle task provided by
-the [intellij-platform-gradle-plugin][gh:intellij-platform-gradle-plugin-docs].
+## Platform Support
 
-You can also upload the plugin to the [JetBrains Plugin Repository](https://plugins.jetbrains.com/plugin/upload)
-manually via UI.
+This plugin is not macOS-only.
 
-## Useful links
+It does not contain macOS-specific logic and should work on macOS, Linux, and Windows as long as:
 
-- [IntelliJ Platform SDK Plugin SDK][docs]
-- [IntelliJ Platform Gradle Plugin Documentation][gh:intellij-platform-gradle-plugin-docs]
-- [IntelliJ Platform Explorer][jb:ipe]
-- [JetBrains Marketplace Quality Guidelines][jb:quality-guidelines]
-- [IntelliJ Platform UI Guidelines][jb:ui-guidelines]
-- [JetBrains Marketplace Paid Plugins][jb:paid-plugins]
-- [IntelliJ SDK Code Samples][gh:code-samples]
+- the JetBrains IDE version is compatible with the plugin
+- the configured AI CLI is installed on that OS
+- the CLI path is set correctly in plugin settings
 
-[docs]: https://plugins.jetbrains.com/docs/intellij
+If a CLI command name differs on your system, use the full executable path in the plugin settings.
 
-[docs:intro]: https://plugins.jetbrains.com/docs/intellij/intellij-platform.html?from=IJPluginTemplate
-
-[docs:plugin.xml]: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html?from=IJPluginTemplate
-
-[docs:publishing]: https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate
-
-[file:plugin.xml]: ./src/main/resources/META-INF/plugin.xml
-
-[gh:code-samples]: https://github.com/JetBrains/intellij-sdk-code-samples
-
-[gh:intellij-platform-gradle-plugin]: https://github.com/JetBrains/intellij-platform-gradle-plugin
-
-[gh:intellij-platform-gradle-plugin-docs]: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
-
-[gh:intellij-platform-gradle-plugin-runIde]: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#runIde
-
-[gh:intellij-platform-gradle-plugin-verifyPlugin]: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#verifyPlugin
-
-[gradle:lifecycle-tasks]: https://docs.gradle.org/current/userguide/java_plugin.html#lifecycle_tasks
-
-[jb:github]: https://github.com/JetBrains/.github/blob/main/profile/README.md
-
-[jb:forum]: https://platform.jetbrains.com/
-
-[jb:quality-guidelines]: https://plugins.jetbrains.com/docs/marketplace/quality-guidelines.html
-
-[jb:paid-plugins]: https://plugins.jetbrains.com/docs/marketplace/paid-plugins-marketplace.html
-
-[jb:quality-guidelines]: https://plugins.jetbrains.com/docs/marketplace/quality-guidelines.html
-
-[jb:ipe]: https://jb.gg/ipe
-
-[jb:ui-guidelines]: https://jetbrains.github.io/ui
+## Credits
+- [@shivamag00](https://github.com/shivamag00)
