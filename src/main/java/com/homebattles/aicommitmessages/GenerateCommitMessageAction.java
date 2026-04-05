@@ -184,6 +184,7 @@ public class GenerateCommitMessageAction extends AnAction {
             enabled = !changeListManager.getDefaultChangeList().getChanges().isEmpty();
         }
 
-        e.getPresentation().setEnabledAndVisible(enabled);
+        e.getPresentation().setVisible(true);
+        e.getPresentation().setEnabled(enabled);
     }
 }
