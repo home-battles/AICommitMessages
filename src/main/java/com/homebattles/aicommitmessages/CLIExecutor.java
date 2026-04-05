@@ -121,6 +121,22 @@ public class CLIExecutor {
      * @return The command as a list of strings
      */
     private List<String> buildCommand(@NotNull CLIType cliType, @NotNull String prompt) {
+        if (cliType == CLIType.CURSOR) {
+            AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
+            String cursorModel = settings.getCursorModel();
+
+            if (cursorModel.isBlank()) {
+                return List.of(getCliExecutablePath(cliType), "instructions", "-p", prompt);
+            }
+            return List.of(
+                    getCliExecutablePath(cliType),
+                    "--model",
+                    cursorModel,
+                    "instructions",
+                    "-p",
+                    prompt
+            );
+        }
         return List.of(getCliExecutablePath(cliType), "-p", prompt);
     }
 
