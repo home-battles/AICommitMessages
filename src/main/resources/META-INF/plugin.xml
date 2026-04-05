@@ -35,7 +35,7 @@
     <actions>
         <action id="GenerateCommitMessage"
                 class="com.homebattles.aicommitmessages.GenerateCommitMessageAction"
-                text="Generate Commit Message"
+                text="Generate Commit Message Using AICommitMessages"
                 description="Generate a commit message using AI"
                 icon="AllIcons.Actions.Edit">
             <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
