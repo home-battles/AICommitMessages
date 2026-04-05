@@ -13,6 +13,7 @@ public final class AICommitMessagesSettings implements PersistentStateComponent<
 
     public static final String DEFAULT_CURSOR_CLI_PATH = "agent";
     public static final String DEFAULT_VSCODE_CLI_PATH = "copilot";
+    public static final String DEFAULT_CURSOR_MODEL = "";
     public static final CliSelectionMode DEFAULT_CLI_SELECTION_MODE = CliSelectionMode.ASK_EVERY_TIME;
 
     public enum CliSelectionMode {
@@ -24,6 +25,7 @@ public final class AICommitMessagesSettings implements PersistentStateComponent<
     public static final class State {
         public String cursorCliPath = DEFAULT_CURSOR_CLI_PATH;
         public String vscodeCliPath = DEFAULT_VSCODE_CLI_PATH;
+        public String cursorModel = DEFAULT_CURSOR_MODEL;
         public String defaultCliType = DEFAULT_CLI_SELECTION_MODE.name();
     }
 
@@ -51,12 +53,20 @@ public final class AICommitMessagesSettings implements PersistentStateComponent<
         return normalize(state.vscodeCliPath, DEFAULT_VSCODE_CLI_PATH);
     }
 
+    public @NotNull String getCursorModel() {
+        return normalize(state.cursorModel, DEFAULT_CURSOR_MODEL);
+    }
+
     public void setCursorCliPath(@Nullable String path) {
         state.cursorCliPath = normalize(path, DEFAULT_CURSOR_CLI_PATH);
     }
 
     public void setVscodeCliPath(@Nullable String path) {
         state.vscodeCliPath = normalize(path, DEFAULT_VSCODE_CLI_PATH);
+    }
+
+    public void setCursorModel(@Nullable String model) {
+        state.cursorModel = normalize(model, DEFAULT_CURSOR_MODEL);
     }
 
     public @NotNull CliSelectionMode getCliSelectionMode() {

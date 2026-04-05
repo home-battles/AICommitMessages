@@ -17,6 +17,7 @@ import java.awt.*;
 public class AICommitMessagesConfigurable implements SearchableConfigurable, Configurable.NoScroll {
     private JPanel panel;
     private JBTextField cursorCliPathField;
+    private JBTextField cursorModelField;
     private JBTextField vscodeCliPathField;
     private JComboBox<String> defaultCliCombo;
 
@@ -33,12 +34,14 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
     @Override
     public @Nullable JComponent createComponent() {
         cursorCliPathField = new JBTextField();
+        cursorModelField = new JBTextField();
         vscodeCliPathField = new JBTextField();
         defaultCliCombo = new ComboBox<>(new String[]{"Ask Every Time", "Cursor", "VSCode"});
 
         panel = new JBPanel<>(new BorderLayout());
         JPanel form = FormBuilder.createFormBuilder()
                 .addLabeledComponent(new JBLabel("Cursor CLI path"), cursorCliPathField, 1, false)
+                .addLabeledComponent(new JBLabel("Cursor model"), cursorModelField, 1, false)
                 .addLabeledComponent(new JBLabel("VSCode CLI path"), vscodeCliPathField, 1, false)
                 .addLabeledComponent(new JBLabel("Default CLI"), defaultCliCombo, 1, false)
                 .addComponentFillVertically(new JPanel(), 0)
@@ -53,6 +56,7 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
     public boolean isModified() {
         AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
         return !settings.getCursorCliPath().equals(cursorCliPathField.getText().trim())
+                || !settings.getCursorModel().equals(cursorModelField.getText().trim())
                 || !settings.getVscodeCliPath().equals(vscodeCliPathField.getText().trim())
                 || cliSelectionModeFromUi() != settings.getCliSelectionMode();
     }
@@ -61,6 +65,7 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
     public void apply() {
         AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
         settings.setCursorCliPath(cursorCliPathField.getText());
+        settings.setCursorModel(cursorModelField.getText());
         settings.setVscodeCliPath(vscodeCliPathField.getText());
         settings.setCliSelectionMode(cliSelectionModeFromUi());
     }
@@ -70,6 +75,9 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
         AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
         if (cursorCliPathField != null) {
             cursorCliPathField.setText(settings.getCursorCliPath());
+        }
+        if (cursorModelField != null) {
+            cursorModelField.setText(settings.getCursorModel());
         }
         if (vscodeCliPathField != null) {
             vscodeCliPathField.setText(settings.getVscodeCliPath());
@@ -83,6 +91,7 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
     public void disposeUIResources() {
         panel = null;
         cursorCliPathField = null;
+        cursorModelField = null;
         vscodeCliPathField = null;
         defaultCliCombo = null;
     }
