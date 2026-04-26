@@ -1,5 +1,6 @@
-package com.homebattles.aicommitmessages;
+package com.homebattles.aicommitmessages.settings;
 
+import com.homebattles.aicommitmessages.aitools.AiTool;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.ui.ComboBox;
@@ -36,7 +37,13 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
         cursorCliPathField = new JBTextField();
         cursorModelField = new JBTextField();
         vscodeCliPathField = new JBTextField();
-        defaultCliCombo = new ComboBox<>(new String[]{"Ask Every Time", "Cursor", "VSCode"});
+
+        String[] providerOptions = new String[AiTool.values().length + 1];
+        providerOptions[0] = "Ask Every Time";
+        for (int i = 0; i < AiTool.values().length; i++) {
+            providerOptions[i + 1] = AiTool.values()[i].getDisplayName();
+        }
+        defaultCliCombo = new ComboBox<>(providerOptions);
 
         panel = new JBPanel<>(new BorderLayout());
         JPanel form = FormBuilder.createFormBuilder()
@@ -58,7 +65,7 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
         return !settings.getCursorCliPath().equals(cursorCliPathField.getText().trim())
                 || !settings.getCursorModel().equals(cursorModelField.getText().trim())
                 || !settings.getVscodeCliPath().equals(vscodeCliPathField.getText().trim())
-                || cliSelectionModeFromUi() != settings.getCliSelectionMode();
+                || providerTypeFromUi() != settings.getDefaultProviderType();
     }
 
     @Override
@@ -67,7 +74,8 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
         settings.setCursorCliPath(cursorCliPathField.getText());
         settings.setCursorModel(cursorModelField.getText());
         settings.setVscodeCliPath(vscodeCliPathField.getText());
-        settings.setCliSelectionMode(cliSelectionModeFromUi());
+        AiTool providerType = providerTypeFromUi();
+        settings.setDefaultCliType(providerType == null ? AICommitMessagesSettings.DEFAULT_CLI_SELECTION_MODE : providerType.name());
     }
 
     @Override
@@ -83,7 +91,7 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
             vscodeCliPathField.setText(settings.getVscodeCliPath());
         }
         if (defaultCliCombo != null) {
-            defaultCliCombo.setSelectedIndex(indexFromCliSelectionMode(settings.getCliSelectionMode()));
+            defaultCliCombo.setSelectedIndex(indexFromProviderType(settings.getDefaultProviderType()));
         }
     }
 
@@ -96,22 +104,29 @@ public class AICommitMessagesConfigurable implements SearchableConfigurable, Con
         defaultCliCombo = null;
     }
 
-    private AICommitMessagesSettings.CliSelectionMode cliSelectionModeFromUi() {
+    private AiTool providerTypeFromUi() {
         if (defaultCliCombo == null) {
-            return AICommitMessagesSettings.DEFAULT_CLI_SELECTION_MODE;
+            return null;
         }
-        return switch (defaultCliCombo.getSelectedIndex()) {
-            case 1 -> AICommitMessagesSettings.CliSelectionMode.CURSOR;
-            case 2 -> AICommitMessagesSettings.CliSelectionMode.VSCODE;
-            default -> AICommitMessagesSettings.CliSelectionMode.ASK_EVERY_TIME;
-        };
+
+        int selectedIndex = defaultCliCombo.getSelectedIndex();
+        if (selectedIndex <= 0 || selectedIndex > AiTool.values().length) {
+            return null;
+        }
+
+        return AiTool.values()[selectedIndex - 1];
     }
 
-    private int indexFromCliSelectionMode(@NotNull AICommitMessagesSettings.CliSelectionMode mode) {
-        return switch (mode) {
-            case ASK_EVERY_TIME -> 0;
-            case CURSOR -> 1;
-            case VSCODE -> 2;
-        };
+    private int indexFromProviderType(@Nullable AiTool providerType) {
+        if (providerType == null) {
+            return 0;
+        }
+
+        for (int i = 0; i < AiTool.values().length; i++) {
+            if (AiTool.values()[i] == providerType) {
+                return i + 1;
+            }
+        }
+        return 0;
     }
 }

@@ -1,4 +1,4 @@
-package com.homebattles.aicommitmessages;
+package com.homebattles.aicommitmessages.providers;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.changes.Change;
