@@ -1,5 +1,6 @@
-package com.homebattles.aicommitmessages;
+package com.homebattles.aicommitmessages.settings;
 
+import com.homebattles.aicommitmessages.aitools.AiTool;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
@@ -14,19 +15,13 @@ public final class AICommitMessagesSettings implements PersistentStateComponent<
     public static final String DEFAULT_CURSOR_CLI_PATH = "agent";
     public static final String DEFAULT_VSCODE_CLI_PATH = "copilot";
     public static final String DEFAULT_CURSOR_MODEL = "";
-    public static final CliSelectionMode DEFAULT_CLI_SELECTION_MODE = CliSelectionMode.ASK_EVERY_TIME;
-
-    public enum CliSelectionMode {
-        ASK_EVERY_TIME,
-        CURSOR,
-        VSCODE
-    }
+    public static final String DEFAULT_CLI_SELECTION_MODE = "ASK_EVERY_TIME";
 
     public static final class State {
         public String cursorCliPath = DEFAULT_CURSOR_CLI_PATH;
         public String vscodeCliPath = DEFAULT_VSCODE_CLI_PATH;
         public String cursorModel = DEFAULT_CURSOR_MODEL;
-        public String defaultCliType = DEFAULT_CLI_SELECTION_MODE.name();
+        public String defaultCliType = DEFAULT_CLI_SELECTION_MODE;
     }
 
     private State state = new State();
@@ -69,12 +64,12 @@ public final class AICommitMessagesSettings implements PersistentStateComponent<
         state.cursorModel = normalize(model, DEFAULT_CURSOR_MODEL);
     }
 
-    public @NotNull CliSelectionMode getCliSelectionMode() {
-        return parseCliSelectionMode(state.defaultCliType);
+    public @Nullable AiTool getDefaultProviderType() {
+        return AiTool.fromString(state.defaultCliType);
     }
 
-    public void setCliSelectionMode(@Nullable CliSelectionMode mode) {
-        state.defaultCliType = (mode == null ? DEFAULT_CLI_SELECTION_MODE : mode).name();
+    public void setDefaultCliType(@Nullable String typeName) {
+        state.defaultCliType = normalize(typeName, DEFAULT_CLI_SELECTION_MODE);
     }
 
     private static @NotNull String normalize(@Nullable String value, @NotNull String fallback) {
@@ -83,23 +78,5 @@ public final class AICommitMessagesSettings implements PersistentStateComponent<
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? fallback : trimmed;
-    }
-
-    private static @NotNull CliSelectionMode parseCliSelectionMode(@Nullable String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return DEFAULT_CLI_SELECTION_MODE;
-        }
-        String normalized = value.trim().toUpperCase();
-        switch (normalized) {
-            case "CURSOR":
-                return CliSelectionMode.CURSOR;
-            case "COPILOT":
-            case "VSCODE":
-                return CliSelectionMode.VSCODE;
-            case "ASK_EVERY_TIME":
-                return CliSelectionMode.ASK_EVERY_TIME;
-            default:
-                return DEFAULT_CLI_SELECTION_MODE;
-        }
     }
 }

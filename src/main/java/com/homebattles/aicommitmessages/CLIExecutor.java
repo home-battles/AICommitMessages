@@ -1,5 +1,8 @@
 package com.homebattles.aicommitmessages;
 
+import com.homebattles.aicommitmessages.aitools.AiTool;
+import com.homebattles.aicommitmessages.aitools.cliclients.AiCliClient;
+import com.homebattles.aicommitmessages.settings.AICommitMessagesSettings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -10,55 +13,55 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 /**
- * Executes CLI commands for Cursor and Copilot to generate commit messages.
+ * Executes AI CLI providers to generate commit messages.
  */
 public class CLIExecutor {
     private static final Logger LOG = Logger.getInstance(CLIExecutor.class);
 
-    public enum CLIType {
-        CURSOR("cursor"),
-        COPILOT("vscode");
+    private final Project project;
+    private final AiTool aiTool;
+    private final AiCliClient aiCliClient;
 
-        private final String displayName;
+    public CLIExecutor(Project project, AiTool aiTool) {
+        this.aiTool = aiTool;
+        this.aiCliClient = aiTool.getAiCliClient();
+        this.project = project;
 
-        CLIType(String displayName) {
-            this.displayName = displayName;
-        }
+        AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
+        this.aiCliClient.setSettings(settings);
 
-        public String getDisplayName() {
-            return displayName;
-        }
+        LOG.info("CLIExecutor initialized with provider: " + aiTool);
     }
 
-    private final Project project;
-
-    public CLIExecutor(@NotNull Project project) {
-        this.project = project;
+    public boolean isCliAvailable() {
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(aiCliClient.getExecutablePath(), "--version");
+            processBuilder.directory(new File(project.getBasePath() != null ? project.getBasePath() : System.getProperty("user.dir")));
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+            return exitCode == 0;
+        } catch (Exception e) {
+            LOG.debug(aiTool.getDisplayName() + " CLI not available: " + e.getMessage());
+            return false;
+        }
     }
 
     /**
-     * Generates a commit message using the specified CLI and diff content.
+     * Generates a commit message using the specified provider and diff content.
      *
-     * @param cliType The CLI to use (CURSOR or COPILOT)
-     * @param diff    The git diff content
+     * @param diff         The git diff content
      * @return The generated commit message
      * @throws Exception if the CLI execution fails
      */
-    public String generateCommitMessage(@NotNull CLIType cliType, @NotNull String diff) throws Exception {
+    public String generateCommitMessage(@NotNull String diff) throws Exception {
         if (diff.trim().isEmpty()) {
             throw new IllegalArgumentException("Diff content is empty");
         }
 
         String prompt = buildPrompt(diff);
-        return executeCLI(cliType, prompt);
+        return this.execute(prompt);
     }
 
-    /**
-     * Builds the prompt for the AI to generate a commit message.
-     *
-     * @param diff The git diff content
-     * @return The formatted prompt
-     */
     private String buildPrompt(@NotNull String diff) {
         return "Generate a concise and descriptive git commit message based on the following diff. " +
                 "The commit message must be surrounded by triple $ signs (e.g. $$$ Commit message $$$)." +
@@ -66,100 +69,36 @@ public class CLIExecutor {
                 "Diff:\n" + diff;
     }
 
-    /**
-     * Executes the CLI command to generate a commit message.
-     *
-     * @param cliType The CLI to use (CURSOR or COPILOT)
-     * @param prompt  The prompt to send to the AI
-     * @return The generated commit message
-     * @throws Exception if the CLI execution fails
-     */
-    private String executeCLI(@NotNull CLIType cliType, @NotNull String prompt) throws Exception {
-        List<String> command = buildCommand(cliType, prompt);
 
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-            processBuilder.directory(new File(project.getBasePath() != null ? project.getBasePath() : System.getProperty("user.dir")));
-            processBuilder.redirectErrorStream(true);
 
-            Process process = processBuilder.start();
+    public @NotNull String execute(@NotNull String prompt) throws Exception {
+        List<String> command = aiCliClient.buildCommand(prompt);
 
-            // Read the output
-            StringBuilder output = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
-                }
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.directory(new File(project.getBasePath() != null ? project.getBasePath() : System.getProperty("user.dir")));
+        processBuilder.redirectErrorStream(true);
+
+        Process process = processBuilder.start();
+        StringBuilder output = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
             }
-
-            // Wait for the process to complete
-            int exitCode = process.waitFor();
-
-            if (exitCode != 0) {
-                LOG.warn("CLI execution failed with exit code: " + exitCode + ", output: " + output);
-                throw new Exception("Failed to get response from CLI. Exit code: " + exitCode + ", Output: " + output);
-            }
-
-            String result = output.toString().trim();
-            if (result.isEmpty()) {
-                throw new Exception("No output received from " + cliType.getDisplayName());
-            }
-
-            return result;
-        } catch (Exception e) {
-            LOG.error("Error executing " + cliType.getDisplayName() + " CLI", e);
-            throw e;
         }
-    }
 
-    /**
-     * Builds the command to execute based on the CLI type.
-     *
-     * @param cliType The CLI to use (CURSOR or COPILOT)
-     * @param prompt  The prompt to send to the AI
-     * @return The command as a list of strings
-     */
-    private List<String> buildCommand(@NotNull CLIType cliType, @NotNull String prompt) {
-        if (cliType == CLIType.CURSOR) {
-            AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
-            String cursorModel = settings.getCursorModel();
-
-            if (cursorModel.isBlank()) {
-                return List.of(getCliExecutablePath(cliType), "instructions", "-p", prompt);
-            }
-            return List.of(
-                    getCliExecutablePath(cliType),
-                    "--model",
-                    cursorModel,
-                    "instructions",
-                    "-p",
-                    prompt
-            );
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            LOG.warn("CLI execution failed with exit code: " + exitCode + ", output: " + output);
+            throw new Exception("Failed to get response from CLI. Exit code: " + exitCode + ", Output: " + output);
         }
-        return List.of(getCliExecutablePath(cliType), "-p", prompt);
-    }
 
-    /**
-     * Checks if a CLI is available in the system PATH.
-     *
-     * @param cliType The CLI to check
-     * @return true if the CLI is available, false otherwise
-     */
-    public boolean isCliAvailable(@NotNull CLIType cliType) {
-        try {
-            ProcessBuilder pb = new ProcessBuilder(getCliExecutablePath(cliType), "--version");
-            Process process = pb.start();
-            int exitCode = process.waitFor();
-            return exitCode == 0;
-        } catch (Exception e) {
-            LOG.debug(cliType.getDisplayName() + " CLI not available: " + e.getMessage());
-            return false;
+        String result = output.toString().trim();
+        if (result.isEmpty()) {
+            throw new Exception("No output received from " + aiTool.getDisplayName());
         }
-    }
 
-    private @NotNull String getCliExecutablePath(@NotNull CLIType cliType) {
-        AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
-        return cliType == CLIType.CURSOR ? settings.getCursorCliPath() : settings.getVscodeCliPath();
+        return result;
     }
 }

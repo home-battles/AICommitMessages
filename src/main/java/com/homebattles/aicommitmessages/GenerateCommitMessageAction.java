@@ -1,8 +1,11 @@
 package com.homebattles.aicommitmessages;
 
+import com.homebattles.aicommitmessages.aitools.AiTool;
+import com.homebattles.aicommitmessages.providers.AiToolProvider;
+import com.homebattles.aicommitmessages.providers.FilesProvider;
+import com.homebattles.aicommitmessages.providers.GitDiffProvider;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.vcs.FilePath;
 import com.intellij.openapi.vcs.VcsDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -11,9 +14,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vcs.changes.Change;
 import com.intellij.openapi.vcs.changes.ChangeListManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -25,6 +26,10 @@ import java.util.*;
 public class GenerateCommitMessageAction extends AnAction {
     private static final Logger LOG = Logger.getInstance(GenerateCommitMessageAction.class);
 
+    /**
+     * Action entry point.
+     * @param e Action event
+     */
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
@@ -33,26 +38,25 @@ public class GenerateCommitMessageAction extends AnAction {
         }
 
         // Get Selected Files
-        var selectedFiles = getSelectedFiles(e);
-
-
+        var selectedFiles = FilesProvider.getSelectedFiles(e);
         if (selectedFiles.isEmpty()) {
             Messages.showErrorDialog(project, "No files selected for commit. Please select at least one file.", "Error");
             return;
         }
 
         // Get CLI from user
-        CLIExecutor.CLIType cliType = getSelectedCLI(project);
-        if (cliType == null) { // Cancel or close
+        AiToolProvider aiToolProvider = new AiToolProvider(project);
+        AiTool aiTool = aiToolProvider.getSelectedAiTool();
+        if (aiTool == null) { // Cancel or close
             return;
         }
 
         // Check if CLI is available
-        CLIExecutor cliExecutor = new CLIExecutor(project);
-        if (!cliExecutor.isCliAvailable(cliType)) {
+        CLIExecutor cliExecutor = new CLIExecutor(project, aiTool);
+        if (!cliExecutor.isCliAvailable()) {
             Messages.showErrorDialog(
                     project,
-                    cliType.getDisplayName() + " CLI is not available. Check installation and the configured CLI path in Settings > Tools > AI Commit Messages.",
+                    aiTool.getDisplayName() + " CLI is not available. Check installation and the configured CLI path in Settings > Tools > AI Commit Messages.",
                     "CLI Not Available"
             );
             return;
@@ -71,11 +75,11 @@ public class GenerateCommitMessageAction extends AnAction {
                         throw new Exception("No diff content found for selected files.");
                     }
 
-                    String generatedMessage = extractMessageBetweenDelimiters(cliExecutor.generateCommitMessage(cliType, diff));
+                    String generatedMessage = extractMessageBetweenDelimiters(cliExecutor.generateCommitMessage(diff));
 
                     // Update commit message on EDT
                     ApplicationManager.getApplication().invokeLater(() ->
-                        Objects.requireNonNull(e.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL)).setCommitMessage(generatedMessage));
+                            Objects.requireNonNull(e.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL)).setCommitMessage(generatedMessage));
                 } catch (Exception ex) {
                     LOG.error("Error generating commit message", ex);
                     ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
@@ -86,59 +90,6 @@ public class GenerateCommitMessageAction extends AnAction {
                 }
             }
         });
-    }
-
-    private static @NotNull Set<VirtualFile> getSelectedFiles(@NotNull AnActionEvent e) {
-        var selectedChanges = Objects.requireNonNull(e.getData(VcsDataKeys.COMMIT_WORKFLOW_UI)).getIncludedChanges();
-
-        var selectedUnversionedChanges = Objects.requireNonNull(e.getData(VcsDataKeys.COMMIT_WORKFLOW_UI)).getIncludedUnversionedFiles();
-
-
-        Set<VirtualFile> selectedFiles = new HashSet<>();
-
-        for (Change change : selectedChanges) {
-            VirtualFile file = change.getVirtualFile();
-            if (file != null) {
-                selectedFiles.add(file);
-            }
-        }
-
-        for (FilePath unversionedFile : selectedUnversionedChanges) {
-            VirtualFile file = unversionedFile.getVirtualFile();
-
-            if (file != null) {
-                selectedFiles.add(file);
-            }
-        }
-
-        return selectedFiles;
-    }
-
-    private static CLIExecutor.CLIType getSelectedCLI(Project project) {
-        AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
-        AICommitMessagesSettings.CliSelectionMode mode = settings.getCliSelectionMode();
-        if (mode == AICommitMessagesSettings.CliSelectionMode.CURSOR) {
-            return CLIExecutor.CLIType.CURSOR;
-        }
-        if (mode == AICommitMessagesSettings.CliSelectionMode.VSCODE) {
-            return CLIExecutor.CLIType.COPILOT;
-        }
-
-        String[] options = {"Cursor", "VSCode", "Cancel"};
-        int selectedOption = Messages.showDialog(
-                project,
-                "Choose which AI CLI to use for generating the commit message:",
-                "Select AI CLI",
-                options,
-                0,
-                Messages.getQuestionIcon()
-        );
-
-        if (selectedOption == 2 || selectedOption == -1) {
-            return null;
-        }
-
-        return selectedOption == 0 ? CLIExecutor.CLIType.CURSOR : CLIExecutor.CLIType.COPILOT;
     }
 
     /**
