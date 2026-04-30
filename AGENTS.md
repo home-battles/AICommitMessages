@@ -187,10 +187,6 @@ Current implementation provides simplified diff (not unified format):
 
 ---
 
-
-
-
-
 ## Common Gotchas & Edge Cases
 
 1. **Empty Diff**: If selected files have no actual changes, `getDiff()` returns empty string → error shown to user
