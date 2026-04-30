@@ -91,12 +91,7 @@ public class AICommitMessagesSettingsUI implements SearchableConfigurable, Confi
         leftPanel.add(leftHeader, BorderLayout.NORTH);
         leftPanel.add(new JScrollPane(toolList), BorderLayout.CENTER);
 
-        JPanel rightHeader = new JBPanel<>(new BorderLayout());
-        rightHeader.add(new JBLabel("<html><b>Tool configs</b></html>"), BorderLayout.NORTH);
-        rightHeader.add(new JSeparator(SwingConstants.HORIZONTAL), BorderLayout.SOUTH);
-
         JPanel rightPanel = new JBPanel<>(new BorderLayout());
-        rightPanel.add(rightHeader, BorderLayout.NORTH);
         rightPanel.add(detailsPanel, BorderLayout.CENTER);
 
         Splitter splitter = new Splitter(false, 0.3f);
@@ -107,10 +102,10 @@ public class AICommitMessagesSettingsUI implements SearchableConfigurable, Confi
         panel.add(splitter, BorderLayout.CENTER);
 
         defaultCliCombo = new ComboBox<>(createProviderOptions(aiTools));
-        JPanel bottomPanel = new JBPanel<>(new FlowLayout(FlowLayout.LEFT));
-        bottomPanel.add(new JBLabel("Default CLI"));
-        bottomPanel.add(defaultCliCombo);
-        panel.add(bottomPanel, BorderLayout.SOUTH);
+        JPanel topPanel = new JBPanel<>(new FlowLayout(FlowLayout.LEFT));
+        topPanel.add(new JBLabel("Default CLI"));
+        topPanel.add(defaultCliCombo);
+        panel.add(topPanel, BorderLayout.NORTH);
 
         reset();
         return panel;
