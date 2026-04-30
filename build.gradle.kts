@@ -32,7 +32,11 @@ intellijPlatform {
         }
 
         changeNotes = """
-            Initial version
+            <ul>
+                <li>Added support for configuring model for Cursor</li>
+                <li>Refactored layout of AI Commit Messages SettingsUI</li>
+                <li>Added a more intuitive icon to "Generate Commit Message" action in VCS Tool Window</li>
+            </ul>
         """.trimIndent()
     }
 }
