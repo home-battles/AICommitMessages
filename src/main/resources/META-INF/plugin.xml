@@ -28,7 +28,7 @@
         <applicationConfigurable id="com.homebattles.aicommitmessages.settings"
                                  parentId="tools"
                                  displayName="AI Commit Messages"
-                                 instance="com.homebattles.aicommitmessages.settings.AICommitMessagesConfigurable"/>
+                                 instance="com.homebattles.aicommitmessages.settings.AICommitMessagesSettingsUI"/>
     </extensions>
 
     <!-- Actions -->

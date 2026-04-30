@@ -1,6 +1,6 @@
 package com.homebattles.aicommitmessages.aitools.cliclients;
 
-import com.homebattles.aicommitmessages.settings.AICommitMessagesSettings;
+import com.homebattles.aicommitmessages.settings.AiToolSettings;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -12,17 +12,19 @@ import java.util.List;
  * and building commands to interact with external AI tools via a CLI.</p>
  */
 public abstract class AiCliClient {
-    protected AICommitMessagesSettings settings;
+    protected AiToolSettings settings;
 
     protected AiCliClient() {
     }
 
-    public void setSettings(AICommitMessagesSettings settings) {
+    public void setSettings(AiToolSettings settings) {
         this.settings = settings;
     }
 
     @NotNull
-    public abstract String getExecutablePath();
+    public final String getExecutablePath() {
+        return settings.getCliPath();
+    }
 
     @NotNull
     public abstract List<String> buildCommand(@NotNull String prompt);

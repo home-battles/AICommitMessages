@@ -6,13 +6,9 @@ import java.util.List;
 public class CursorAiCliClient extends AiCliClient {
 
     @Override
-    public @NotNull String getExecutablePath() {
-        return settings.getCursorCliPath();
-    }
-
-    @Override
     public @NotNull List<String> buildCommand(@NotNull String prompt) {
-        String cursorModel = settings.getCursorModel();
+        String cursorModel = settings.getModelName();
+
         if (cursorModel.isBlank()) {
             return List.of(getExecutablePath(), "instructions", "-p", prompt);
         }

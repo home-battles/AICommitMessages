@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 public enum AiTool {
     CURSOR("Cursor", new CursorAiCliClient()),
-    COPILOT("VSCode", new CopilotAiCliClient());
+    GITHUB_COPILOT("GitHub Copilot", new CopilotAiCliClient());
 
     private final String displayName;
 

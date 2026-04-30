@@ -2,7 +2,7 @@ package com.homebattles.aicommitmessages;
 
 import com.homebattles.aicommitmessages.aitools.AiTool;
 import com.homebattles.aicommitmessages.aitools.cliclients.AiCliClient;
-import com.homebattles.aicommitmessages.settings.AICommitMessagesSettings;
+import com.homebattles.aicommitmessages.settings.AiToolSettingsService;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -27,8 +27,8 @@ public class CLIExecutor {
         this.aiCliClient = aiTool.getAiCliClient();
         this.project = project;
 
-        AICommitMessagesSettings settings = AICommitMessagesSettings.getInstance();
-        this.aiCliClient.setSettings(settings);
+        AiToolSettingsService settings = AiToolSettingsService.getInstance();
+        this.aiCliClient.setSettings(settings.getState().tools.get(aiTool.getDisplayName()));
 
         LOG.info("CLIExecutor initialized with provider: " + aiTool);
     }

@@ -1,7 +1,7 @@
 package com.homebattles.aicommitmessages.providers;
 
 import com.homebattles.aicommitmessages.aitools.AiTool;
-import com.homebattles.aicommitmessages.settings.AICommitMessagesSettings;
+import com.homebattles.aicommitmessages.settings.AiToolSettingsService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
@@ -30,9 +30,9 @@ public class AiToolProvider {
      * @return the selected {@code AIProviderType}, or {@code null} if no selection is made
      */
     public @Nullable AiTool getSelectedAiTool() {
-        AiTool defaultTool = AICommitMessagesSettings
+        AiTool defaultTool = AiToolSettingsService
                 .getInstance()
-                .getDefaultProviderType();
+                .getDefaultAiTool();
 
         if (defaultTool != null) {
             return defaultTool;
